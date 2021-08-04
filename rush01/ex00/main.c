@@ -6,13 +6,12 @@
 /*   By: laube <louis-philippe.aube@hotmail.co      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/02 17:45:23 by laube             #+#    #+#             */
-/*   Updated: 2021/08/03 23:10:48 by laube            ###   ########.fr       */
+/*   Updated: 2021/08/04 11:31:16 by laube            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header.h"
 
-#include <stdio.h>
 
 int	**init_rules(char *rules, int dim)
 {
@@ -28,6 +27,8 @@ int	**init_rules(char *rules, int dim)
 		j = 0;
 		while (j < dim)
 		{
+			if (!(ft_atoi(rules) >= 0 && ft_atoi(rules) <= dim))
+				return (0);
 			rules_tab[i][j] = ft_atoi(rules);
 			while (!((*rules >= 9 && *rules <= 13) || *rules == 32) && *rules)
 				rules++;
@@ -78,6 +79,8 @@ int	get_dim(char *str)
 				str++;
 		}
 	}
+	if (counter % 4 != 0 || counter == 0)
+		return (-1);
 	return (counter / 4);
 }
 
@@ -294,9 +297,10 @@ int	solve_it(int **board, int **rules_tab, int dim)
 	// NEED FIXING HERE!!!
 	while (test_rules(board, rules_tab, dim, row * dim + col) != 2)
 	{
-		printf("PRE | row: %d | col: %d\n", row, col);
 		if (board[row][col] > dim)
 		{
+			if (row == 0 && col == 0)
+				return (-1);
 			board[row][col] = 0;
 			if (col == 0)
 			{
@@ -306,8 +310,8 @@ int	solve_it(int **board, int **rules_tab, int dim)
 			else
 			{
 				col--;
-				board[row][col]++;
 			}
+			board[row][col]++;
 		}
 		else if (test_rules(board, rules_tab, dim, row * dim + col) == 0)
 		{
@@ -322,11 +326,15 @@ int	solve_it(int **board, int **rules_tab, int dim)
 				col = 0;
 			}
 		}
-		printf("POST | row: %d | col: %d\n", row, col);
-		print_board(board, dim);
-		ft_putchar('\n');
 	}
 	return (0);
+}
+
+int	ft_error(void)
+{
+	ft_putstr("Error");
+	ft_putchar('\n');
+	return (-1);
 }
 
 int	main(int argc, char **argv)
@@ -336,12 +344,15 @@ int	main(int argc, char **argv)
 	int **rules_tab;
 
 	if (argc != 2)
-	{
-		ft_putstr("Error");
-		ft_putchar('\n');
-	}
+		return ft_error();
 	dim = get_dim(argv[1]);
+	if (dim == -1)
+		return (ft_error());
 	board = init_board(dim);
 	rules_tab = init_rules(argv[1], dim);
-	solve_it(board, rules_tab, dim);
+	if (rules_tab == 0)
+		return (ft_error());
+	if (solve_it(board, rules_tab, dim) == -1)
+		return (ft_error());
+	print_board(board, dim);
 }
