@@ -6,7 +6,7 @@
 /*   By: laube <louis-philippe.aube@hotmail.co      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/02 17:45:23 by laube             #+#    #+#             */
-/*   Updated: 2021/08/03 21:21:52 by laube            ###   ########.fr       */
+/*   Updated: 2021/08/03 23:10:48 by laube            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ int	get_dim(char *str)
 				str++;
 		}
 	}
-	return (ft_sqroot(counter));
+	return (counter / 4);
 }
 
 void	ft_putnbr(int num)
@@ -156,22 +156,21 @@ int	no_dup(int **board, int dim, int col, int row)
 	return (1);
 }
 
-int	pass_left_row(int **board, int **rules_tab, int dim, int row)
+int	test_left(int **board, int **rules_tab, int dim, int row)
 {
 	int	i;
-	int	top_height;
+	int	max_height;
 	int	seen_left;
 
-	// From left pov
 	seen_left = 0;
-	top_height = 0;
+	max_height = 0;
 	i = 0;
 	while (i < dim)
 	{
-		if (board[row][i] > top_height)
+		if (board[row][i] > max_height)
 		{
 			seen_left++;
-			top_height = board[row][i];
+			max_height = board[row][i];
 		}
 		i++;
 	}
@@ -182,8 +181,83 @@ int	pass_left_row(int **board, int **rules_tab, int dim, int row)
 	return (1);
 }
 
+int	test_right(int **board, int **rules_tab, int dim, int row)
+{
+	int	i;
+	int	max_height;
+	int	seen_right;
+
+	if (board[row][dim - 1] == 0)
+		return (1);
+	seen_right = 0;
+	max_height = 0;
+	i = dim - 1;
+	while (i >= 0)
+	{
+		if (board[row][i] > max_height)
+		{
+			seen_right++;
+			max_height = board[row][i];
+		}
+		i--;
+	}
+	if (seen_right != rules_tab[3][row])
+		return (0);
+	return (1);
+}
+
+int	test_top(int **board, int **rules_tab, int dim, int col)
+{
+	int	i;
+	int	max_height;
+	int	seen_top;
+
+	seen_top = 0;
+	max_height = 0;
+	i = 0;
+	while (i < dim)
+	{
+		if (board[i][col] > max_height)
+		{
+			seen_top++;
+			max_height = board[i][col];
+		}
+		i++;
+	}
+	if (seen_top > rules_tab[0][col])
+		return (0);
+	if (board[dim - 1][col] != 0 && seen_top != rules_tab[0][col])
+		return (0);
+	return (1);
+}
+
+int	test_bottom(int **board, int **rules_tab, int dim, int col)
+{
+	int	i;
+	int	max_height;
+	int	seen_bottom;
+
+	if (board[dim - 1][col] == 0)
+		return (1);
+	seen_bottom = 0;
+	max_height = 0;
+	i = dim - 1;
+	while (i >= 0)
+	{
+		if (board[i][col] > max_height)
+		{
+			seen_bottom++;
+			max_height = board[i][col];
+		}
+		i--;
+	}
+	if (seen_bottom != rules_tab[1][col])
+		return (0);
+	return (1);
+}
+
 // Returns 0 if does not pass rules; 1 if pass rules; 2 if pass rules and board full
-int	pass_rules(int **board, int **rules_tab, int dim, int pos)
+int	test_rules(int **board, int **rules_tab, int dim, int pos)
 {
 	int	col;
 	int	row;
@@ -197,9 +271,14 @@ int	pass_rules(int **board, int **rules_tab, int dim, int pos)
 		return (0);
 	if (no_dup(board, dim, col, row) == 0)
 		return (0);
-	if (pass_left_row(board, rules_tab, dim, row) == 0)
+	if (test_left(board, rules_tab, dim, row) == 0)
 		return (0);
-	// Board is full and no 0
+	if (test_right(board, rules_tab, dim, row) == 0)
+		return (0);
+	if (test_top(board, rules_tab, dim, col) == 0)
+		return (0);
+	if (test_bottom(board, rules_tab, dim, col) == 0)
+		return (0);
 	if (col == dim - 1 && row == dim - 1 && board[row][col] != 0)
 		return (2);
 	return (1);
@@ -212,8 +291,10 @@ int	solve_it(int **board, int **rules_tab, int dim)
 
 	col = 0;
 	row = 0;
-	while (pass_rules(board, rules_tab, dim, row * dim + col) != 2)
+	// NEED FIXING HERE!!!
+	while (test_rules(board, rules_tab, dim, row * dim + col) != 2)
 	{
+		printf("PRE | row: %d | col: %d\n", row, col);
 		if (board[row][col] > dim)
 		{
 			board[row][col] = 0;
@@ -226,22 +307,22 @@ int	solve_it(int **board, int **rules_tab, int dim)
 			{
 				col--;
 				board[row][col]++;
-				continue ;
 			}
 		}
-		if (pass_rules(board, rules_tab, dim, row * dim + col) == 0)
+		else if (test_rules(board, rules_tab, dim, row * dim + col) == 0)
 		{
 			board[row][col]++;
 		}
 		else
 		{
 			col++;
-			if (col == dim)
+			if (col >= dim)
 			{
 				row++;
 				col = 0;
 			}
 		}
+		printf("POST | row: %d | col: %d\n", row, col);
 		print_board(board, dim);
 		ft_putchar('\n');
 	}

@@ -6,7 +6,7 @@
 /*   By: laube <louis-philippe.aube@hotmail.co      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/02 17:51:45 by laube             #+#    #+#             */
-/*   Updated: 2021/08/02 19:31:13 by laube            ###   ########.fr       */
+/*   Updated: 2021/08/03 23:02:53 by laube            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,21 +33,6 @@ int	ft_atoi(char *str)
 		str++;
 	}
 	return (res_num * sign);
-}
-
-int	ft_sqroot(int num)
-{
-	int	i;
-
-	i = 1;
-	while (i <= num)
-	{
-		if (i * i == num)
-			return (i);
-		i++;
-	}
-	// If not a square
-	return (0);
 }
 
 int	ft_strlen(char *str)
