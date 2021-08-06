@@ -6,7 +6,7 @@
 /*   By: laube <louis-philippe.aube@hotmail.co      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/05 12:04:51 by laube             #+#    #+#             */
-/*   Updated: 2021/08/06 09:52:49 by laube            ###   ########.fr       */
+/*   Updated: 2021/08/06 13:15:54 by laube            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,11 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+void	ft_putchar(char c)
+{
+	write(1, &c, 1);
+}
 
 int	ft_strlen(char *str)
 {
@@ -70,18 +75,13 @@ int	get_line_bytes(int tmp_fd)
 	return (line_bytes);
 }
 
-void	print_value(char *buff)
-{
-}
-
-char	*get_value(char *buff, int key)
+int	print_value(char *buff, int key)
 {
 	int	dict_key;
 
 	dict_key = ft_atoi(buff);
 	if (dict_key == key)
 	{
-		return (buff);
 		while (*buff)
 		{
 			if (*buff == ':')
@@ -89,12 +89,13 @@ char	*get_value(char *buff, int key)
 				buff++;
 				while ((*buff >= 9 && *buff <= 13) || *buff == 32)
 					buff++;
-				return (buff);
+				ft_putstr(buff);
+				return (1);
 			}
 			buff++;
 		}
 	}
-	return (NULL);
+	return (0);
 }
 
 int	parse_dict(char *path, int key)
@@ -102,25 +103,24 @@ int	parse_dict(char *path, int key)
 	int	tmp_fd;
 	int	fd;
 	int	line_bytes;
+	int	ret_print_value;
 	char	*buff;
-	char	*value;
 
-	value = NULL;
+	ret_print_value = 0;
 	tmp_fd = open(path, O_RDONLY);
 	fd = open(path, O_RDONLY);
 	if (fd == -1 || tmp_fd == -1)
 		return (-1);
-	while (value == NULL)
+	while (ret_print_value == 0)
 	{
 		line_bytes = get_line_bytes(tmp_fd);
 		buff = malloc(sizeof(char) * (line_bytes));
 		read(fd, buff, line_bytes);
 		buff[line_bytes - 1] = 0;
-		value = get_value(buff, key);
-		printf("value: %p | buff: %p\n", value, buff);
+		ret_print_value = print_value(buff, key);
 		free(buff);
+		buff = NULL;
 	}
-	ft_putstr(value);
 	return (0);
 }
 
@@ -128,8 +128,26 @@ void	parse_key(char *path, int full_key)
 {
 	int	part_key;
 	
-	// split-up key
-	parse_dict(path, part_key);
+	part_key = full_key;
+	if (part_key < 1000)
+	{
+		if (part_key > 99)
+		{
+			parse_dict(path, part_key / 100);
+			ft_putchar(' ');
+			parse_dict(path, 100);
+			ft_putchar(' ');
+			part_key = part_key % 100;
+		}
+		if (part_key > 9)
+		{
+			parse_dict(path, (part_key / 10) * 10);
+			ft_putchar(' ');
+			part_key = part_key % 10;
+		}
+		if (part_key != 0)
+			parse_dict(path, part_key);
+	}
 }
 
 int	ft_error(char *str)
