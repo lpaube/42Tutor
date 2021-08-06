@@ -6,7 +6,7 @@
 /*   By: laube <louis-philippe.aube@hotmail.co      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/05 12:04:51 by laube             #+#    #+#             */
-/*   Updated: 2021/08/06 00:05:15 by laube            ###   ########.fr       */
+/*   Updated: 2021/08/06 09:52:49 by laube            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,10 +70,31 @@ int	get_line_bytes(int tmp_fd)
 	return (line_bytes);
 }
 
+void	print_value(char *buff)
+{
+}
+
 char	*get_value(char *buff, int key)
 {
-	printf("key: %d | buff: %s\n", key, buff);
-	return ("hello");
+	int	dict_key;
+
+	dict_key = ft_atoi(buff);
+	if (dict_key == key)
+	{
+		return (buff);
+		while (*buff)
+		{
+			if (*buff == ':')
+			{
+				buff++;
+				while ((*buff >= 9 && *buff <= 13) || *buff == 32)
+					buff++;
+				return (buff);
+			}
+			buff++;
+		}
+	}
+	return (NULL);
 }
 
 int	parse_dict(char *path, int key)
@@ -96,9 +117,19 @@ int	parse_dict(char *path, int key)
 		read(fd, buff, line_bytes);
 		buff[line_bytes - 1] = 0;
 		value = get_value(buff, key);
+		printf("value: %p | buff: %p\n", value, buff);
 		free(buff);
 	}
+	ft_putstr(value);
 	return (0);
+}
+
+void	parse_key(char *path, int full_key)
+{
+	int	part_key;
+	
+	// split-up key
+	parse_dict(path, part_key);
 }
 
 int	ft_error(char *str)
@@ -118,13 +149,13 @@ int	main(int argc, char **argv)
 		key = ft_atoi(argv[1]);
 		if (key == -1)
 			return (ft_error("Error\n"));
-		parse_dict("../dict.txt", key);
+		parse_key("../dict.txt", key);
 	}
 	else if (argc == 3)
 	{
 		key = ft_atoi(argv[2]);
 		if (key == -1)
 			return (ft_error("Error\n"));
-		parse_dict(argv[1], key);
+		parse_key(argv[1], key);
 	}
 }
