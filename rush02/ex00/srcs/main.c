@@ -6,7 +6,7 @@
 /*   By: laube <louis-philippe.aube@hotmail.co      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/05 12:04:51 by laube             #+#    #+#             */
-/*   Updated: 2021/08/06 13:15:54 by laube            ###   ########.fr       */
+/*   Updated: 2021/08/06 21:40:16 by laube            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,29 +124,78 @@ int	parse_dict(char *path, int key)
 	return (0);
 }
 
+void	read_dict(char *path, int part_key, int thousands)
+{
+	int	space_state;
+
+	space_state = 0;
+	if (part_key > 99)
+	{
+		parse_dict(path, part_key / 100);
+		ft_putchar(' ');
+		parse_dict(path, 100);
+		part_key = part_key % 100;
+		space_state = 1;
+	}
+	if (part_key > 9)
+	{
+		if (space_state == 1)
+			ft_putchar(' ');
+		parse_dict(path, (part_key / 10) * 10);
+		part_key = part_key % 10;
+		space_state = 1;
+	}
+	if (part_key != 0)
+	{
+		if (space_state == 1)
+			ft_putchar(' ');
+		parse_dict(path, part_key);
+		space_state = 1;
+	}
+	if (thousands != 0)
+	{
+		if (space_state == 1)
+			ft_putchar(' ');
+		parse_dict(path, thousands);
+	}
+}
+
 void	parse_key(char *path, int full_key)
 {
 	int	part_key;
-	
+	int	space_state;
+
+	space_state = 0;
 	part_key = full_key;
-	if (part_key < 1000)
+	if (full_key >= 1000000000)
 	{
-		if (part_key > 99)
-		{
-			parse_dict(path, part_key / 100);
+		read_dict(path, full_key / 1000000000, 1000000000);
+		full_key = full_key % 1000000000;
+		space_state = 1;
+	}
+	if (full_key < 1000000000 && full_key >= 1000000)
+	{
+		if (space_state == 1)
 			ft_putchar(' ');
-			parse_dict(path, 100);
+		part_key = full_key / 1000000;
+		read_dict(path, part_key, 1000000);
+		full_key = full_key % 1000;
+		space_state = 1;
+	}
+	if (full_key < 1000000 && full_key >= 1000)
+	{
+		if (space_state == 1)
 			ft_putchar(' ');
-			part_key = part_key % 100;
-		}
-		if (part_key > 9)
-		{
-			parse_dict(path, (part_key / 10) * 10);
+		part_key = full_key / 1000;
+		read_dict(path, part_key, 1000);
+		full_key = full_key % 1000;
+		space_state = 1;
+	}
+	if (full_key < 1000)
+	{
+		if (space_state == 1)
 			ft_putchar(' ');
-			part_key = part_key % 10;
-		}
-		if (part_key != 0)
-			parse_dict(path, part_key);
+		read_dict(path, full_key, 0);
 	}
 }
 
