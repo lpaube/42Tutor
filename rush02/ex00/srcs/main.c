@@ -6,63 +6,15 @@
 /*   By: laube <louis-philippe.aube@hotmail.co      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/05 12:04:51 by laube             #+#    #+#             */
-/*   Updated: 2021/08/06 21:40:16 by laube            ###   ########.fr       */
+/*   Updated: 2021/08/06 22:57:15 by laube            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//#include "../incls/header.h"
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-void	ft_putchar(char c)
-{
-	write(1, &c, 1);
-}
-
-int	ft_strlen(char *str)
-{
-	int	i;
-
-	i = 0;
-	while (str[i])
-		i++;
-	return (i);
-}
-
-void	ft_putstr(char *str)
-{
-	write(1, str, ft_strlen(str));
-}
-
-int	ft_atoi(const char *str)
-{
-	int	curr_num;
-	int	sign;
-
-	while ((*str >= 9 && *str <= 13) || *str == 32)
-		str++;
-	sign = 1;
-	curr_num = 0;
-	if (*str == '-' || *str == '+')
-	{
-		if (*str == '-')
-			sign = -1;
-		str++;
-	}
-	if (!(*str >= '0' && *str <= '9'))
-		return (-1);
-	while (*str >= '0' && *str <= '9')
-		curr_num = (curr_num * 10) + (*(str++) - '0');
-	if (curr_num * sign < 0)
-		return (-1);
-	return (curr_num * sign);
-}
+#include "../incls/header.h"
 
 int	get_line_bytes(int tmp_fd)
 {
-	int	line_bytes;
+	int		line_bytes;
 	char	buff;
 
 	line_bytes = 0;
@@ -98,111 +50,26 @@ int	print_value(char *buff, int key)
 	return (0);
 }
 
-int	parse_dict(char *path, int key)
-{
-	int	tmp_fd;
-	int	fd;
-	int	line_bytes;
-	int	ret_print_value;
-	char	*buff;
-
-	ret_print_value = 0;
-	tmp_fd = open(path, O_RDONLY);
-	fd = open(path, O_RDONLY);
-	if (fd == -1 || tmp_fd == -1)
-		return (-1);
-	while (ret_print_value == 0)
-	{
-		line_bytes = get_line_bytes(tmp_fd);
-		buff = malloc(sizeof(char) * (line_bytes));
-		read(fd, buff, line_bytes);
-		buff[line_bytes - 1] = 0;
-		ret_print_value = print_value(buff, key);
-		free(buff);
-		buff = NULL;
-	}
-	return (0);
-}
-
-void	read_dict(char *path, int part_key, int thousands)
-{
-	int	space_state;
-
-	space_state = 0;
-	if (part_key > 99)
-	{
-		parse_dict(path, part_key / 100);
-		ft_putchar(' ');
-		parse_dict(path, 100);
-		part_key = part_key % 100;
-		space_state = 1;
-	}
-	if (part_key > 9)
-	{
-		if (space_state == 1)
-			ft_putchar(' ');
-		parse_dict(path, (part_key / 10) * 10);
-		part_key = part_key % 10;
-		space_state = 1;
-	}
-	if (part_key != 0)
-	{
-		if (space_state == 1)
-			ft_putchar(' ');
-		parse_dict(path, part_key);
-		space_state = 1;
-	}
-	if (thousands != 0)
-	{
-		if (space_state == 1)
-			ft_putchar(' ');
-		parse_dict(path, thousands);
-	}
-}
-
 void	parse_key(char *path, int full_key)
 {
 	int	part_key;
-	int	space_state;
+	int	spc_state;
 
-	space_state = 0;
+	spc_state = 0;
 	part_key = full_key;
 	if (full_key >= 1000000000)
-	{
-		read_dict(path, full_key / 1000000000, 1000000000);
-		full_key = full_key % 1000000000;
-		space_state = 1;
-	}
+		dict_control(path, &full_key, 1000000000, &spc_state);
 	if (full_key < 1000000000 && full_key >= 1000000)
-	{
-		if (space_state == 1)
-			ft_putchar(' ');
-		part_key = full_key / 1000000;
-		read_dict(path, part_key, 1000000);
-		full_key = full_key % 1000;
-		space_state = 1;
-	}
+		dict_control(path, &full_key, 1000000, &spc_state);
 	if (full_key < 1000000 && full_key >= 1000)
-	{
-		if (space_state == 1)
-			ft_putchar(' ');
-		part_key = full_key / 1000;
-		read_dict(path, part_key, 1000);
-		full_key = full_key % 1000;
-		space_state = 1;
-	}
+		dict_control(path, &full_key, 1000, &spc_state);
 	if (full_key < 1000)
 	{
-		if (space_state == 1)
+		if (spc_state == 1)
 			ft_putchar(' ');
 		read_dict(path, full_key, 0);
 	}
-}
-
-int	ft_error(char *str)
-{
-	ft_putstr(str);
-	return (-1);
+	ft_putchar('\n');
 }
 
 int	main(int argc, char **argv)
@@ -216,7 +83,7 @@ int	main(int argc, char **argv)
 		key = ft_atoi(argv[1]);
 		if (key == -1)
 			return (ft_error("Error\n"));
-		parse_key("../dict.txt", key);
+		parse_key("dict.txt", key);
 	}
 	else if (argc == 3)
 	{
